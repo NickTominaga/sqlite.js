@@ -283,3 +283,24 @@ body.bg-body-tertiary .delete_btn {
   border: 1px solid #dee2e6;
   border-radius: .5rem;
 }
+
+[data-bs-theme="dark"] body.bg-body-tertiary {
+  background-color: var(--bs-body-bg) !important;
+}
+
+[data-bs-theme="dark"] body.bg-body-tertiary .sidebar {
+  background-color: var(--bs-tertiary-bg);
+  border-color: var(--bs-border-color) !important;
+}
+
+[data-bs-theme="dark"] body.bg-body-tertiary .sidebar .nav-link {
+  color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] body.bg-body-tertiary .sidebar .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] body.bg-body-tertiary .main_body {
+  background-color: var(--bs-tertiary-bg);
+}

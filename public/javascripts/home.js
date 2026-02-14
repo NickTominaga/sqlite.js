@@ -1,3 +1,27 @@
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-bs-theme", theme);
+  localStorage.setItem("theme", theme);
+
+  const icon = document.getElementById("themeToggleIcon");
+  if (icon) {
+    icon.className = theme === "dark" ? "bi bi-sun" : "bi bi-moon-stars";
+  }
+}
+
+function initThemeToggle() {
+  const toggle = document.getElementById("themeToggle");
+  if (!toggle) return;
+
+  const currentTheme = document.documentElement.getAttribute("data-bs-theme") || "light";
+  applyTheme(currentTheme);
+
+  toggle.addEventListener("click", () => {
+    const now = document.documentElement.getAttribute("data-bs-theme") || "light";
+    applyTheme(now === "dark" ? "light" : "dark");
+  });
+}
+
 let tablename;
 let tableInstance;
 
@@ -186,4 +210,7 @@ async function renderTabulatorTable(tableName) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", fetchData);
+document.addEventListener("DOMContentLoaded", () => {
+  initThemeToggle();
+  fetchData();
+});
