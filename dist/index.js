@@ -12,7 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SqliteGuiNodeMiddleware = exports.createSqliteGuiApp = exports.SqliteGuiNode = void 0;
+exports.SqliteGuiNode = SqliteGuiNode;
+exports.createSqliteGuiApp = createSqliteGuiApp;
+exports.SqliteGuiNodeMiddleware = SqliteGuiNodeMiddleware;
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const path_1 = __importDefault(require("path"));
@@ -20,6 +22,114 @@ const databaseFunctions_1 = __importDefault(require("./Utils/databaseFunctions")
 const logger_1 = __importDefault(require("./Utils/logger"));
 const tables_1 = __importDefault(require("./routes/tables"));
 const app = (0, express_1.default)();
+const openApiDocument = {
+    openapi: "3.0.3",
+    info: {
+        title: "sqlite-gui-node API",
+        version: "1.0.0",
+        description: "RESTful API for sqlite-gui-node",
+    },
+    servers: [{ url: "/", description: "Current server" }],
+    paths: {
+        "/api/tables": {
+            get: {
+                summary: "List all tables",
+                responses: { "200": { description: "Tables fetched" } },
+            },
+        },
+        "/api/tables/{name}/rows": {
+            get: {
+                summary: "Get rows from a table",
+                parameters: [
+                    { name: "name", in: "path", required: true, schema: { type: "string" } },
+                    { name: "page", in: "query", required: false, schema: { type: "integer", default: 1 } },
+                    { name: "perPage", in: "query", required: false, schema: { type: "integer", default: 50 } },
+                ],
+                responses: { "200": { description: "Rows fetched" } },
+            },
+            post: {
+                summary: "Insert a row into a table",
+                parameters: [
+                    { name: "name", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { "201": { description: "Row inserted" } },
+            },
+        },
+        "/api/tables/{name}/rows/{id}": {
+            get: {
+                summary: "Get a row by id/key",
+                parameters: [
+                    { name: "name", in: "path", required: true, schema: { type: "string" } },
+                    { name: "id", in: "path", required: true, schema: { type: "string" } },
+                    { name: "key", in: "query", required: false, schema: { type: "string", default: "id" } },
+                ],
+                responses: { "200": { description: "Row fetched" } },
+            },
+            patch: {
+                summary: "Update a row by id/key",
+                parameters: [
+                    { name: "name", in: "path", required: true, schema: { type: "string" } },
+                    { name: "id", in: "path", required: true, schema: { type: "string" } },
+                    { name: "key", in: "query", required: false, schema: { type: "string", default: "id" } },
+                ],
+                responses: { "200": { description: "Row updated" } },
+            },
+            delete: {
+                summary: "Delete a row by id/key",
+                parameters: [
+                    { name: "name", in: "path", required: true, schema: { type: "string" } },
+                    { name: "id", in: "path", required: true, schema: { type: "string" } },
+                    { name: "key", in: "query", required: false, schema: { type: "string", default: "id" } },
+                ],
+                responses: { "200": { description: "Row deleted" } },
+            },
+        },
+        "/api/tables/{name}": {
+            delete: {
+                summary: "Delete a table",
+                parameters: [
+                    { name: "name", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { "200": { description: "Table deleted" } },
+            },
+        },
+        "/api/tables/{name}/columns": {
+            get: {
+                summary: "Get table columns",
+                parameters: [
+                    { name: "name", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { "200": { description: "Columns fetched" } },
+            },
+        },
+    },
+};
+function configureAppRoutes(targetApp, db) {
+    targetApp.use("/api/tables", (0, tables_1.default)(db));
+    targetApp.get("/api-docs.json", (_req, res) => {
+        res.status(200).json(openApiDocument);
+    });
+    targetApp.get("/api-docs", (_req, res) => {
+        res.send(`<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>sqlite-gui-node API Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+      SwaggerUIBundle({
+        url: './api-docs.json',
+        dom_id: '#swagger-ui'
+      });
+    </script>
+  </body>
+</html>`);
+    });
+}
 app.set("view engine", "ejs");
 app.set("views", path_1.default.join(__dirname, "../views"));
 app.use(body_parser_1.default.urlencoded({ extended: false }));
@@ -30,13 +140,13 @@ app.use((req, res, next) => {
     next();
 });
 // Routes
-app.get("/query", (req, res) => {
+app.get("/query", (_req, res) => {
     res.render("query", { title: "Query Page" });
 });
-app.get("/home", (req, res) => {
+app.get("/home", (_req, res) => {
     res.render("index", { title: "Home Page" });
 });
-app.get("/createtable", (req, res) => {
+app.get("/createtable", (_req, res) => {
     res.render("createTable", { title: "Create Table Page" });
 });
 app.get("/insert/:table", (req, res) => {
@@ -52,24 +162,22 @@ app.get("/edit/:table/:label/:id", (req, res) => {
 function SqliteGuiNode(db_1) {
     return __awaiter(this, arguments, void 0, function* (db, port = 8080) {
         yield databaseFunctions_1.default.InitializeDB(db);
-        app.use("/api/tables", (0, tables_1.default)(db));
+        configureAppRoutes(app, db);
         app.listen(port, () => {
             logger_1.default.info(`SQLite Web Admin Tool running at http://localhost:${port}/home`);
         });
     });
 }
-exports.SqliteGuiNode = SqliteGuiNode;
 function createSqliteGuiApp(db) {
     return __awaiter(this, void 0, void 0, function* () {
         yield databaseFunctions_1.default.InitializeDB(db);
-        app.use("/api/tables", (0, tables_1.default)(db));
+        configureAppRoutes(app, db);
         return app;
     });
 }
-exports.createSqliteGuiApp = createSqliteGuiApp;
 // SqliteGuiNode as middleware
 function SqliteGuiNodeMiddleware(app, db) {
-    return function (req, res, next) {
+    return function (_req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield databaseFunctions_1.default.InitializeDB(db);
@@ -79,13 +187,13 @@ function SqliteGuiNodeMiddleware(app, db) {
                 app.use(express_1.default.static(path_1.default.join(__dirname, "../public")));
                 app.use(body_parser_1.default.json());
                 // Routes
-                app.get("/query", (req, res) => {
+                app.get("/query", (_req, res) => {
                     res.render("query", { title: "Query Page" });
                 });
-                app.get("/", (req, res) => {
+                app.get("/", (_req, res) => {
                     res.render("index", { title: "Home Page" });
                 });
-                app.get("/createtable", (req, res) => {
+                app.get("/createtable", (_req, res) => {
                     res.render("createTable", { title: "Create Table Page" });
                 });
                 app.get("/insert/:table", (req, res) => {
@@ -97,18 +205,16 @@ function SqliteGuiNodeMiddleware(app, db) {
                     const id = req.params.id;
                     res.render("edit", { tableName, id });
                 });
-                app.use("/api/tables", (0, tables_1.default)(db)); // Add table routes
-                app.get("/home", (req, res) => {
+                configureAppRoutes(app, db);
+                app.get("/home", (_req, res) => {
                     res.render("index", { title: "Home Page" });
                 });
-                next(); // Proceed to the next middleware/route handler
+                next();
             }
             catch (error) {
-                // Handle any errors during DB initialization
                 logger_1.default.error("Error initializing the database:", error);
                 res.status(500).send("Error initializing the database.");
             }
         });
     };
 }
-exports.SqliteGuiNodeMiddleware = SqliteGuiNodeMiddleware;

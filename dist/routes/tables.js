@@ -17,24 +17,29 @@ const databaseFunctions_1 = __importDefault(require("../Utils/databaseFunctions"
 const sqlGenerator_1 = __importDefault(require("../Utils/sqlGenerator"));
 const helpers_1 = require("../Utils/helpers");
 const router = express_1.default.Router();
+function parsePagination(query) {
+    const page = Number(query.page) || 1;
+    const perPage = Number(query.perPage) || 50;
+    return { page, perPage };
+}
 function tableRoutes(db) {
-    router.get("/", (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.get("/", (_req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             yield databaseFunctions_1.default.exportDatabaseToSQL(db);
             const tables = yield databaseFunctions_1.default.fetchAllTables(db);
             res.status(200).json(tables);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
-    router.get("/local/query", (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.get("/local/query", (_req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             yield databaseFunctions_1.default.InitializeDB(db);
             const queries = yield databaseFunctions_1.default.fetchQueries(db);
             res.status(200).json(queries);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -45,18 +50,124 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.insertQuery(db, name, sqlStatement);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
-    router.get("/:name", (req, res) => __awaiter(this, void 0, void 0, function* () {
-        const { name } = req.params;
-        const { page, perPage } = req.query;
+    // RESTful routes
+    router.get("/:name/rows", (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
-            const response = yield databaseFunctions_1.default.fetchTable(db, name, { page: Number(page), perPage: Number(perPage) });
+            const { name } = req.params;
+            const response = yield databaseFunctions_1.default.fetchTable(db, name, parsePagination(req.query));
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    router.get("/:name/rows/:id", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const { name, id } = req.params;
+            const key = String((_a = req.query.key) !== null && _a !== void 0 ? _a : "id");
+            const response = yield databaseFunctions_1.default.fetchRecord(db, name, key, id);
+            res.status(200).json(response);
+        }
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    router.post("/:name/rows", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { name } = req.params;
+            const { dataArray } = req.body;
+            const sql = yield sqlGenerator_1.default.generateInsertSQL(db, name, dataArray);
+            const response = yield databaseFunctions_1.default.runQuery(db, sql);
+            res.status(201).json(response);
+        }
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    router.patch("/:name/rows/:id", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const { name, id } = req.params;
+            const { dataArray, id_label } = req.body;
+            const key = id_label !== null && id_label !== void 0 ? id_label : String((_a = req.query.key) !== null && _a !== void 0 ? _a : "id");
+            const sql = sqlGenerator_1.default.generateUpdateSQL(name, dataArray, id, key);
+            const response = yield databaseFunctions_1.default.runQuery(db, sql);
+            res.status(200).json(response);
+        }
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    router.delete("/:name/rows/:id", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const { name, id } = req.params;
+            const key = String((_a = req.query.key) !== null && _a !== void 0 ? _a : "id");
+            const sql = `DELETE FROM ${(0, helpers_1.quoteColumn)(name)} WHERE ${(0, helpers_1.quoteColumn)(key)} = ${Number.isNaN(Number(id)) ? `'${id}'` : Number(id)};`;
+            const response = yield databaseFunctions_1.default.runQuery(db, sql);
+            res.status(200).json(response);
+        }
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    router.delete("/:name", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { name } = req.params;
+            const sql = `DROP TABLE ${(0, helpers_1.quoteColumn)(name)};`;
+            const response = yield databaseFunctions_1.default.runQuery(db, sql);
+            res.status(200).json(response);
+        }
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    router.get("/:name/columns", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { name } = req.params;
+            const response = yield databaseFunctions_1.default.fetchTableInfo(db, name);
+            const fk = yield databaseFunctions_1.default.fetchTableForeignKeys(db, name);
+            if (fk.bool && fk.data !== undefined) {
+                yield Promise.all(fk.data.map((element) => __awaiter(this, void 0, void 0, function* () {
+                    const fkResponse = yield databaseFunctions_1.default.fetchFK(db, element.table, element.to);
+                    if (response.data !== undefined) {
+                        response.data.forEach((item) => {
+                            if (item.field === element.from) {
+                                item.fk = fkResponse.data.map((obj) => obj[element.to]);
+                            }
+                        });
+                    }
+                })));
+            }
+            res.status(200).json(response);
+        }
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    router.get("/:name/columns/all", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        const { name } = req.params;
+        try {
+            const response = yield databaseFunctions_1.default.fetchAllTableInfo(db, name);
+            res.status(200).json(response);
+        }
+        catch (_error) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }));
+    // Legacy routes (kept for backward compatibility)
+    router.get("/:name", (req, res) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { name } = req.params;
+            const response = yield databaseFunctions_1.default.fetchTable(db, name, parsePagination(req.query));
+            res.status(200).json(response);
+        }
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -66,23 +177,20 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.fetchTableInfo(db, name);
             const fk = yield databaseFunctions_1.default.fetchTableForeignKeys(db, name);
             if (fk.bool && fk.data !== undefined) {
-                fk.data.forEach((element) => {
-                    databaseFunctions_1.default
-                        .fetchFK(db, element.table, element.to)
-                        .then((fk_response) => {
-                        if (response.data !== undefined) {
-                            response.data.forEach((item) => {
-                                if (item.field === element.from) {
-                                    item.fk = fk_response.data.map((obj) => obj[element.to]);
-                                }
-                            });
-                        }
-                    });
-                });
+                yield Promise.all(fk.data.map((element) => __awaiter(this, void 0, void 0, function* () {
+                    const fkResponse = yield databaseFunctions_1.default.fetchFK(db, element.table, element.to);
+                    if (response.data !== undefined) {
+                        response.data.forEach((item) => {
+                            if (item.field === element.from) {
+                                item.fk = fkResponse.data.map((obj) => obj[element.to]);
+                            }
+                        });
+                    }
+                })));
             }
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -92,7 +200,7 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.fetchAllTableInfo(db, name);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -103,7 +211,7 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.runQuery(db, sql);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -113,7 +221,7 @@ function tableRoutes(db) {
             const sql = yield sqlGenerator_1.default.generateInsertSQL(db, tablename, dataArray);
             res.status(200).json(sql);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -155,7 +263,7 @@ function tableRoutes(db) {
                 res.status(200).json({ type: "string", data: message });
             }
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -166,7 +274,7 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.runQuery(db, sql);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -176,7 +284,7 @@ function tableRoutes(db) {
             const sql = sqlGenerator_1.default.generateCreateTableSQL(tableName, data);
             res.status(200).json(sql);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -187,7 +295,7 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.runQuery(db, sql);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -197,7 +305,7 @@ function tableRoutes(db) {
             const sql = sqlGenerator_1.default.generateUpdateSQL(tablename, dataArray, userId, id_label);
             res.status(200).json(sql);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -207,7 +315,7 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.fetchRecord(db, tablename, label, id);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -217,7 +325,7 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.deleteFromTable(db, tablename, id);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
@@ -228,7 +336,7 @@ function tableRoutes(db) {
             const response = yield databaseFunctions_1.default.runQuery(db, sql);
             res.status(200).json(response);
         }
-        catch (error) {
+        catch (_error) {
             res.status(500).json({ message: "Internal server error" });
         }
     }));
