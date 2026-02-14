@@ -13,7 +13,7 @@
         <li class="nav-item text-nowrap px-3">
           <a class="nav-link text-white" href="<%= basePath %>/output.sql">Export database</a>
         </li>
-              <li class="nav-item text-nowrap px-3">
+        <li class="nav-item text-nowrap px-3">
           <button id="themeToggle" class="btn btn-outline-light btn-sm" type="button" aria-label="Toggle theme">
             <i id="themeToggleIcon" class="bi bi-moon-stars"></i>
           </button>
@@ -26,12 +26,30 @@
 
     <div class="container-fluid">
       <div class="row">
-        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse border-end">
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse border-end">
           <div class="position-sticky pt-3 sidebar-sticky">
-            <div class="px-3 mb-3">
-              <a class="btn btn-primary w-100" href="<%= basePath %>/createtable">Create table</a>
+            <div class="sidebar-shell d-flex flex-column flex-shrink-0 p-3">
+              <a href="<%= basePath %>/home" class="d-flex align-items-center pb-3 mb-3 link-body-emphasis text-decoration-none border-bottom">
+                <i class="bi bi-layout-sidebar-inset me-2"></i>
+                <span class="fs-6 fw-semibold">Menu</span>
+              </a>
+
+              <ul class="list-unstyled ps-0">
+                <li class="mb-1">
+                  <a class="btn btn-primary w-100 text-start" href="<%= basePath %>/createtable">
+                    <i class="bi bi-plus-circle me-2"></i>Create table
+                  </a>
+                </li>
+                <li class="mb-1">
+                  <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed w-100" data-bs-toggle="collapse" data-bs-target="#tables-collapse" aria-expanded="true">
+                    <i class="bi bi-table me-2"></i>Tables
+                  </button>
+                  <div class="collapse show" id="tables-collapse">
+                    <ul id="tablesList" class="btn-toggle-nav list-unstyled fw-normal pb-1 small tables-nav"></ul>
+                  </div>
+                </li>
+              </ul>
             </div>
-            <ul class="nav flex-column tables-nav"></ul>
           </div>
         </nav>
 

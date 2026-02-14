@@ -1,4 +1,3 @@
-
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-bs-theme", theme);
   localStorage.setItem("theme", theme);
@@ -13,7 +12,8 @@ function initThemeToggle() {
   const toggle = document.getElementById("themeToggle");
   if (!toggle) return;
 
-  const currentTheme = document.documentElement.getAttribute("data-bs-theme") || "light";
+  const currentTheme =
+    document.documentElement.getAttribute("data-bs-theme") || "light";
   applyTheme(currentTheme);
 
   toggle.addEventListener("click", () => {
@@ -23,7 +23,6 @@ function initThemeToggle() {
 }
 
 let tablename;
-let tableInstance;
 
 async function fetchData() {
   try {
@@ -38,21 +37,30 @@ async function fetchData() {
   }
 }
 
+function setActiveTableButton(button) {
+  document.querySelectorAll(".table-link").forEach((el) => {
+    el.classList.remove("active");
+  });
+  button.classList.add("active");
+}
+
 function populateSidebar(tables) {
   const tablesNav = document.querySelector(".tables-nav");
+  if (!tablesNav) return;
+  tablesNav.innerHTML = "";
 
   tables.forEach((table) => {
     if (table.name !== "sqlite_sequence" && table.name !== "query") {
       const item = document.createElement("li");
-      item.classList.add("nav-item");
 
       const button = document.createElement("button");
       button.type = "button";
-      button.classList.add("nav-link", "w-100", "text-start", "btn", "btn-link", "px-3");
-      button.textContent = table.name;
+      button.classList.add("table-link");
+      button.innerHTML = `<i class="bi bi-table me-2"></i>${table.name}`;
 
       button.addEventListener("click", () => {
         tablename = table.name;
+        setActiveTableButton(button);
         renderTabulatorTable(tablename);
       });
 
@@ -88,7 +96,8 @@ function buildColumns(rows) {
   const actionColumns = [
     {
       title: "Edit",
-      formatter: () => '<button class="btn btn-sm btn-outline-primary">Edit</button>',
+      formatter: () =>
+        '<button class="btn btn-sm btn-outline-primary">Edit</button>',
       hozAlign: "center",
       headerSort: false,
       cellClick: (_e, cell) => {
@@ -98,7 +107,8 @@ function buildColumns(rows) {
     },
     {
       title: "Delete",
-      formatter: () => '<button class="btn btn-sm btn-outline-danger">Delete</button>',
+      formatter: () =>
+        '<button class="btn btn-sm btn-outline-danger">Delete</button>',
       hozAlign: "center",
       headerSort: false,
       cellClick: async (_e, cell) => {
@@ -187,7 +197,7 @@ async function renderTabulatorTable(tableName) {
       return;
     }
 
-    tableInstance = new Tabulator("#tabulator-container", {
+    new Tabulator("#tabulator-container", {
       layout: "fitColumns",
       pagination: true,
       paginationMode: "remote",

@@ -304,3 +304,47 @@ body.bg-body-tertiary .delete_btn {
 [data-bs-theme="dark"] body.bg-body-tertiary .main_body {
   background-color: var(--bs-tertiary-bg);
 }
+
+/* Bootstrap sidebars example inspired styles */
+.sidebar-shell {
+  min-height: calc(100vh - 96px);
+}
+
+.btn-toggle {
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: var(--bs-emphasis-color);
+}
+
+.btn-toggle:hover,
+.btn-toggle:focus {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.table-link {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.75rem;
+  margin: 0.125rem 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  text-align: left;
+}
+
+.table-link:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.table-link.active {
+  background-color: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary-text-emphasis);
+  font-weight: 600;
+}
+
+[data-bs-theme="dark"] .table-link.active {
+  background-color: rgba(var(--bs-primary-rgb), 0.2);
+  color: #fff;
+}
