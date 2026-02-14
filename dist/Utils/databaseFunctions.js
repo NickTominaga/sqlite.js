@@ -1,37 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -41,21 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const logger_1 = __importDefault(require("./logger")); // Assuming logger is imported from a separate file
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
-const helpers_1 = require("./helpers");
+const logger = require("./logger").default; // Assuming logger is imported from a separate file
+const fs = require("fs");
+const path = require("path");
+const { quoteColumn: q } = require("./helpers");
 function InitializeDB(db) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             db.serialize(() => {
                 db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='query'", (err, row) => {
                     if (err) {
-                        logger_1.default.error("Error checking for query:", err.message);
+                        logger.error("Error checking for query:", err.message);
                         reject(err);
                         return;
                     }
@@ -68,7 +32,7 @@ function InitializeDB(db) {
               )
             `, (err) => {
                             if (err) {
-                                logger_1.default.error("Error creating query:", err.message);
+                                logger.error("Error creating query:", err.message);
                                 reject(err);
                                 return;
                             }
@@ -87,8 +51,8 @@ function insertQuery(db, name, sqlStatement) {
     return new Promise((resolve, reject) => {
         db.run(`INSERT INTO query (name, sqlstatement) VALUES (?, ?)`, [name, sqlStatement], (error) => {
             if (error) {
-                logger_1.default.error("SQL Statement : " + sqlStatement);
-                logger_1.default.error(error.message);
+                logger.error("SQL Statement : " + sqlStatement);
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
                 return;
             }
@@ -102,8 +66,8 @@ function fetchQueries(db) {
     return new Promise((resolve, reject) => {
         db.all(`SELECT * FROM query`, function (error, rows) {
             if (error) {
-                logger_1.default.error("Error while fetching table");
-                logger_1.default.error(error.message);
+                logger.error("Error while fetching table");
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
                 return;
             }
@@ -117,8 +81,8 @@ function fetchAllTables(db) {
     return new Promise((resolve, reject) => {
         db.all("SELECT name FROM sqlite_master WHERE type='table'", function (error, rows) {
             if (error) {
-                logger_1.default.error("Error while fetching tables");
-                logger_1.default.error(error.message);
+                logger.error("Error while fetching tables");
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
                 return;
             }
@@ -135,10 +99,10 @@ function fetchTable(db_1, table_1) {
         const offset = (page - 1) * limit;
         const [rows, total] = yield Promise.all([
             new Promise((resolve, reject) => {
-                db.all(`SELECT * FROM ${(0, helpers_1.quoteColumn)(table)} LIMIT ${limit} OFFSET ${offset}`, function (error, rows) {
+                db.all(`SELECT * FROM ${q(table)} LIMIT ${limit} OFFSET ${offset}`, function (error, rows) {
                     if (error) {
-                        logger_1.default.error("Error while fetching table");
-                        logger_1.default.error(error.message);
+                        logger.error("Error while fetching table");
+                        logger.error(error.message);
                         reject({ bool: false, error: error.message });
                         return;
                     }
@@ -148,11 +112,11 @@ function fetchTable(db_1, table_1) {
                 });
             }),
             new Promise((resolve, reject) => {
-                db.get(`SELECT COUNT(*) FROM ${(0, helpers_1.quoteColumn)(table)};`, function (error, res) {
+                db.get(`SELECT COUNT(*) FROM ${q(table)};`, function (error, res) {
                     var _a;
                     if (error) {
-                        logger_1.default.error("Error while fetching table");
-                        logger_1.default.error(error.message);
+                        logger.error("Error while fetching table");
+                        logger.error(error.message);
                         reject({ bool: false, error: error.message });
                         return;
                     }
@@ -176,10 +140,10 @@ function fetchTable(db_1, table_1) {
 }
 function fetchRecord(db, table, label, id) {
     return new Promise((resolve, reject) => {
-        db.all(`SELECT * FROM ${(0, helpers_1.quoteColumn)(table)} WHERE ${label} = ${typeof id === "string" ? `'${id}'` : id}`, function (error, rows) {
+        db.all(`SELECT * FROM ${q(table)} WHERE ${label} = ${typeof id === "string" ? `'${id}'` : id}`, function (error, rows) {
             if (error) {
-                logger_1.default.error("Error while fetching record");
-                logger_1.default.error(error.message);
+                logger.error("Error while fetching record");
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
                 return;
             }
@@ -191,10 +155,10 @@ function fetchRecord(db, table, label, id) {
 }
 function fetchTableInfo(db, table) {
     return new Promise((resolve, reject) => {
-        db.all(`PRAGMA table_info(${(0, helpers_1.quoteColumn)(table)})`, function (error, rows) {
+        db.all(`PRAGMA table_info(${q(table)})`, function (error, rows) {
             if (error) {
-                logger_1.default.error("Error while fetching table info");
-                logger_1.default.error(error.message);
+                logger.error("Error while fetching table info");
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
             }
             else {
@@ -226,10 +190,10 @@ function fetchTableInfo(db, table) {
 }
 function fetchAllTableInfo(db, table) {
     return new Promise((resolve, reject) => {
-        db.all(`PRAGMA table_info(${(0, helpers_1.quoteColumn)(table)})`, function (error, rows) {
+        db.all(`PRAGMA table_info(${q(table)})`, function (error, rows) {
             if (error) {
-                logger_1.default.error("Error while fetching table info");
-                logger_1.default.error(error.message);
+                logger.error("Error while fetching table info");
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
             }
             else {
@@ -255,7 +219,7 @@ function fetchAllTableInfo(db, table) {
 function fetchTableForeignKeys(db, table) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
-            db.all(`PRAGMA foreign_key_list(${(0, helpers_1.quoteColumn)(table)})`, function (error, rows) {
+            db.all(`PRAGMA foreign_key_list(${q(table)})`, function (error, rows) {
                 if (error) {
                     console.error("Error while fetching foreign key info");
                     console.error(error.message);
@@ -280,10 +244,10 @@ function fetchTableForeignKeys(db, table) {
 }
 function fetchFK(db, table, column) {
     return new Promise((resolve, reject) => {
-        db.all(`SELECT ${(0, helpers_1.quoteColumn)(column)} from ${(0, helpers_1.quoteColumn)(table)}`, function (error, rows) {
+        db.all(`SELECT ${q(column)} from ${q(table)}`, function (error, rows) {
             if (error) {
-                logger_1.default.error("Error while fetching Foreign keys");
-                logger_1.default.error(error.message);
+                logger.error("Error while fetching Foreign keys");
+                logger.error(error.message);
                 reject({ bool: false, data: [], error: error.message });
                 return;
             }
@@ -297,8 +261,8 @@ function runQuery(db, sqlStatement) {
     return new Promise((resolve, reject) => {
         db.run(sqlStatement, function (error) {
             if (error) {
-                logger_1.default.error("SQL Statement : " + sqlStatement);
-                logger_1.default.error(error.message);
+                logger.error("SQL Statement : " + sqlStatement);
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
                 return;
             }
@@ -312,8 +276,8 @@ function runSelectQuery(db, sqlStatement) {
     return new Promise((resolve, reject) => {
         db.all(sqlStatement, function (error, rows) {
             if (error) {
-                logger_1.default.error("SQL Statement : " + sqlStatement);
-                logger_1.default.error(error.message);
+                logger.error("SQL Statement : " + sqlStatement);
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
                 return;
             }
@@ -330,7 +294,7 @@ function checkColumnHasDefault(db, tableName, columnType, columnName) {
             const sql = `
                 SELECT sql
                 FROM sqlite_master
-                WHERE type = 'table' AND name = '${(0, helpers_1.quoteColumn)(tableName)}'
+                WHERE type = 'table' AND name = '${q(tableName)}'
             `;
             // Execute the SQL query
             db.get(sql, [], (err, row) => {
@@ -347,7 +311,7 @@ function checkColumnHasDefault(db, tableName, columnType, columnName) {
                     return;
                 }
                 // Check if the SQL definition contains the column name and the word "DEFAULT"
-                const hasDefault = row.sql.includes(`${(0, helpers_1.quoteColumn)(columnName)} ${columnType} DEFAULT`);
+                const hasDefault = row.sql.includes(`${q(columnName)} ${columnType} DEFAULT`);
                 // Return the result
                 resolve({ bool: hasDefault, message: "" });
             });
@@ -366,8 +330,8 @@ function deleteFromTable(db, name, id) {
     return new Promise((resolve, reject) => {
         db.run(`DELETE FROM ${name} WHERE id = ${typeof id === "string" ? `'${id}'` : id};`, function (error) {
             if (error) {
-                logger_1.default.error("Error while deleting");
-                logger_1.default.error(error.message);
+                logger.error("Error while deleting");
+                logger.error(error.message);
                 reject({ bool: false, error: error.message });
                 return;
             }
@@ -391,9 +355,9 @@ function exportDatabaseToSQL(db) {
                 tables.forEach((table) => {
                     const tableName = table.name;
                     const createTableSQL = table.sql;
-                    sql += `-- Dumping data for table ${(0, helpers_1.quoteColumn)(tableName)}\n`;
+                    sql += `-- Dumping data for table ${q(tableName)}\n`;
                     sql += `${createTableSQL};\n`;
-                    db.all(`PRAGMA table_info(${(0, helpers_1.quoteColumn)(tableName)})`, (err, columns) => {
+                    db.all(`PRAGMA table_info(${q(tableName)})`, (err, columns) => {
                         if (err) {
                             reject({ bool: false, error: err.message });
                             return;
@@ -401,17 +365,17 @@ function exportDatabaseToSQL(db) {
                         columns.forEach((column) => {
                             sql += `-- ${column.cid} | ${column.name} | ${column.type} | ${column.notnull} | ${column.dflt_value} | ${column.pk}\n`;
                         });
-                        db.all(`SELECT * FROM ${(0, helpers_1.quoteColumn)(tableName)}`, (err, rows) => {
+                        db.all(`SELECT * FROM ${q(tableName)}`, (err, rows) => {
                             if (err) {
                                 reject({ bool: false, error: err.message });
                                 return;
                             }
                             rows.forEach((row) => {
-                                const columns = Object.keys(row).map(helpers_1.quoteColumn).join(", ");
+                                const columns = Object.keys(row).map(q).join(", ");
                                 const values = Object.values(row)
                                     .map((value) => `'${value}'`)
                                     .join(", ");
-                                sql += `INSERT INTO ${(0, helpers_1.quoteColumn)(tableName)} (${columns}) VALUES (${values});\n`;
+                                sql += `INSERT INTO ${q(tableName)} (${columns}) VALUES (${values});\n`;
                             });
                             pendingTables -= 1;
                             if (pendingTables === 0) {

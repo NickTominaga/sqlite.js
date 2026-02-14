@@ -1,6 +1,6 @@
-import type { DataItem } from "../types";
-import databaseFunctions from "./databaseFunctions";
-import { isEmpty, quoteColumn as q, quoteValue } from "./helpers";
+type DataItem = import("../types").DataItem;
+const databaseFunctions = require("./databaseFunctions").default;
+const { isEmpty, quoteColumn: q, quoteValue } = require("./helpers");
 
 async function generateInsertSQL(
   db: any,

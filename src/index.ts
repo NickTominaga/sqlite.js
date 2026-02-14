@@ -1,15 +1,14 @@
-import express, {
-  Request,
-  Response,
-  NextFunction,
-  type Application,
-} from "express";
-import bodyParser from "body-parser";
-import path from "path";
-import databaseFunctions from "./Utils/databaseFunctions";
-import logger from "./Utils/logger";
-import tableRoutes from "./routes/tables";
-import type { Database } from "sqlite3";
+const express = require("express") as typeof import("express");
+const bodyParser = require("body-parser");
+const path = require("path");
+const databaseFunctions = require("./Utils/databaseFunctions").default;
+const logger = require("./Utils/logger").default;
+const tableRoutes = require("./routes/tables").default;
+type Request = import("express").Request;
+type Response = import("express").Response;
+type NextFunction = import("express").NextFunction;
+type Application = import("express").Application;
+type Database = import("sqlite3").Database;
 
 const app = express();
 

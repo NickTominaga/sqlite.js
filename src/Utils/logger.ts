@@ -1,4 +1,4 @@
-import * as winston from "winston";
+const winston = require("winston") as typeof import("winston");
 
 // Define colors of levels (optional, for colored output)
 const colorsLogger = {

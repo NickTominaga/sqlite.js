@@ -1,8 +1,10 @@
-import express, { Request, Response } from "express";
-import databaseFunctions from "../Utils/databaseFunctions";
-import sqlGenerator from "../Utils/sqlGenerator";
-import { quoteColumn as q } from "../Utils/helpers";
-import type { Database } from "sqlite3";
+const express = require("express") as typeof import("express");
+const databaseFunctions = require("../Utils/databaseFunctions").default;
+const sqlGenerator = require("../Utils/sqlGenerator").default;
+const { quoteColumn: q } = require("../Utils/helpers");
+type Request = import("express").Request;
+type Response = import("express").Response;
+type Database = import("sqlite3").Database;
 
 const router = express.Router();
 
@@ -131,16 +133,16 @@ function tableRoutes(db: Database) {
       const fk = await databaseFunctions.fetchTableForeignKeys(db, name);
       if (fk.bool && fk.data !== undefined) {
         await Promise.all(
-          fk.data.map(async (element) => {
+          fk.data.map(async (element: any) => {
             const fkResponse = await databaseFunctions.fetchFK(
               db,
               element.table,
               element.to
             );
             if (response.data !== undefined) {
-              response.data.forEach((item) => {
+              response.data.forEach((item: any) => {
                 if (item.field === element.from) {
-                  item.fk = fkResponse.data.map((obj) => obj[element.to]);
+                  item.fk = fkResponse.data.map((obj: any) => obj[element.to]);
                 }
               });
             }
@@ -185,16 +187,16 @@ function tableRoutes(db: Database) {
       const fk = await databaseFunctions.fetchTableForeignKeys(db, name);
       if (fk.bool && fk.data !== undefined) {
         await Promise.all(
-          fk.data.map(async (element) => {
+          fk.data.map(async (element: any) => {
             const fkResponse = await databaseFunctions.fetchFK(
               db,
               element.table,
               element.to
             );
             if (response.data !== undefined) {
-              response.data.forEach((item) => {
+              response.data.forEach((item: any) => {
                 if (item.field === element.from) {
-                  item.fk = fkResponse.data.map((obj) => obj[element.to]);
+                  item.fk = fkResponse.data.map((obj: any) => obj[element.to]);
                 }
               });
             }

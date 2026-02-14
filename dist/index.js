@@ -8,20 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SqliteGuiNode = SqliteGuiNode;
 exports.createSqliteGuiApp = createSqliteGuiApp;
 exports.SqliteGuiNodeMiddleware = SqliteGuiNodeMiddleware;
-const express_1 = __importDefault(require("express"));
-const body_parser_1 = __importDefault(require("body-parser"));
-const path_1 = __importDefault(require("path"));
-const databaseFunctions_1 = __importDefault(require("./Utils/databaseFunctions"));
-const logger_1 = __importDefault(require("./Utils/logger"));
-const tables_1 = __importDefault(require("./routes/tables"));
-const app = (0, express_1.default)();
+const express = require("express");
+const bodyParser = require("body-parser");
+const path = require("path");
+const databaseFunctions = require("./Utils/databaseFunctions").default;
+const logger = require("./Utils/logger").default;
+const tableRoutes = require("./routes/tables").default;
+const app = express();
 const openApiDocument = {
     openapi: "3.0.3",
     info: {
@@ -105,7 +102,7 @@ const openApiDocument = {
     },
 };
 function configureAppRoutes(targetApp, db) {
-    targetApp.use("/api/tables", (0, tables_1.default)(db));
+    targetApp.use("/api/tables", tableRoutes(db));
     targetApp.get("/api-docs.json", (_req, res) => {
         res.status(200).json(openApiDocument);
     });
@@ -131,10 +128,10 @@ function configureAppRoutes(targetApp, db) {
     });
 }
 app.set("view engine", "ejs");
-app.set("views", path_1.default.join(__dirname, "../views"));
-app.use(body_parser_1.default.urlencoded({ extended: false }));
-app.use(express_1.default.static(path_1.default.join(__dirname, "../public")));
-app.use(body_parser_1.default.json());
+app.set("views", path.join(__dirname, "../views"));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, "../public")));
+app.use(bodyParser.json());
 app.use((req, res, next) => {
     res.locals.basePath = req.baseUrl;
     next();
@@ -161,16 +158,16 @@ app.get("/edit/:table/:label/:id", (req, res) => {
 // SqliteGuiNode function to run the app
 function SqliteGuiNode(db_1) {
     return __awaiter(this, arguments, void 0, function* (db, port = 8080) {
-        yield databaseFunctions_1.default.InitializeDB(db);
+        yield databaseFunctions.InitializeDB(db);
         configureAppRoutes(app, db);
         app.listen(port, () => {
-            logger_1.default.info(`SQLite Web Admin Tool running at http://localhost:${port}/home`);
+            logger.info(`SQLite Web Admin Tool running at http://localhost:${port}/home`);
         });
     });
 }
 function createSqliteGuiApp(db) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield databaseFunctions_1.default.InitializeDB(db);
+        yield databaseFunctions.InitializeDB(db);
         configureAppRoutes(app, db);
         return app;
     });
@@ -180,12 +177,12 @@ function SqliteGuiNodeMiddleware(app, db) {
     return function (_req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield databaseFunctions_1.default.InitializeDB(db);
+                yield databaseFunctions.InitializeDB(db);
                 app.set("view engine", "ejs");
-                app.set("views", path_1.default.join(__dirname, "../views"));
-                app.use(body_parser_1.default.urlencoded({ extended: false }));
-                app.use(express_1.default.static(path_1.default.join(__dirname, "../public")));
-                app.use(body_parser_1.default.json());
+                app.set("views", path.join(__dirname, "../views"));
+                app.use(bodyParser.urlencoded({ extended: false }));
+                app.use(express.static(path.join(__dirname, "../public")));
+                app.use(bodyParser.json());
                 // Routes
                 app.get("/query", (_req, res) => {
                     res.render("query", { title: "Query Page" });
@@ -212,7 +209,7 @@ function SqliteGuiNodeMiddleware(app, db) {
                 next();
             }
             catch (error) {
-                logger_1.default.error("Error initializing the database:", error);
+                logger.error("Error initializing the database:", error);
                 res.status(500).send("Error initializing the database.");
             }
         });

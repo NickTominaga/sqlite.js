@@ -1,9 +1,9 @@
-import logger from "./logger"; // Assuming logger is imported from a separate file
-import * as fs from "fs";
-import * as path from "path";
-import { quoteColumn as q } from "./helpers";
+const logger = require("./logger").default; // Assuming logger is imported from a separate file
+const fs = require("fs");
+const path = require("path");
+const { quoteColumn: q } = require("./helpers");
 
-import type { Database } from "sqlite3";
+type Database = import("sqlite3").Database;
 
 // Interface for a Query object (optional for improved type safety)
 interface Query {
@@ -512,7 +512,7 @@ function exportDatabaseToSQL(
                   pendingTables -= 1;
 
                   if (pendingTables === 0) {
-                    fs.writeFile(outputPath, sql, (err) => {
+                    fs.writeFile(outputPath, sql, (err: any) => {
                       if (err) {
                         reject({ bool: false, error: err.message });
                         return;
