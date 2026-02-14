@@ -15,29 +15,27 @@ async function fetchData() {
 }
 
 function populateSidebar(tables) {
-  const sidebar = document.querySelector(".sidebar");
+  const tablesNav = document.querySelector(".tables-nav");
 
   tables.forEach((table) => {
     if (table.name !== "sqlite_sequence" && table.name !== "query") {
-      const tableDiv = document.createElement("div");
-      tableDiv.classList.add("sidebar_table_div");
+      const item = document.createElement("li");
+      item.classList.add("nav-item");
 
-      const h1 = document.createElement("h1");
-      h1.textContent = table.name;
-      tableDiv.appendChild(h1);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.classList.add("nav-link", "w-100", "text-start", "btn", "btn-link", "px-3");
+      button.textContent = table.name;
 
-      tableDiv.addEventListener("click", () => {
+      button.addEventListener("click", () => {
         tablename = table.name;
         renderTabulatorTable(tablename);
       });
 
-      sidebar.appendChild(tableDiv);
+      item.appendChild(button);
+      tablesNav.appendChild(item);
     }
   });
-
-  const tableDiv = document.createElement("div");
-  tableDiv.classList.add("sidebar_table_div_end");
-  sidebar.appendChild(tableDiv);
 }
 
 async function fetchFirstPage(tableName) {

@@ -242,3 +242,44 @@
 .input_form_name {
   width: 30vh;
 }
+
+/* Dashboard layout (home) */
+body.bg-body-tertiary .sidebar {
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  background-color: #fff;
+  overflow: visible;
+}
+
+body.bg-body-tertiary .sidebar .nav-link {
+  color: #212529;
+  border-radius: .25rem;
+}
+
+body.bg-body-tertiary .sidebar .nav-link:hover {
+  background-color: #f1f3f5;
+  text-decoration: none;
+}
+
+body.bg-body-tertiary .main_body {
+  min-height: calc(100vh - 180px);
+  background-color: #fff;
+  padding: 1.5rem;
+}
+
+body.bg-body-tertiary .main_body_header {
+  height: auto;
+  padding-bottom: 1rem;
+}
+
+body.bg-body-tertiary .insert_btn,
+body.bg-body-tertiary .delete_btn {
+  border-radius: .5rem;
+  min-height: 2.5rem;
+}
+
+#tabulator-container .tabulator {
+  border: 1px solid #dee2e6;
+  border-radius: .5rem;
+}
