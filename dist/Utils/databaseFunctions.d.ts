@@ -1,4 +1,4 @@
-import type { Database } from "sqlite3";
+type Database = import("sqlite3").Database;
 interface Query {
     id: number;
     name: string;

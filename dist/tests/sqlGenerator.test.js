@@ -1,9 +1,5 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const sqlGenerator_1 = __importDefault(require("../Utils/sqlGenerator"));
+const sqlGenerator = require("../Utils/sqlGenerator").default;
 describe("generateUpdateSQL", () => {
     test("should generate correct SQL for updating a table", () => {
         const tableName = "users";
@@ -20,7 +16,7 @@ describe("generateUpdateSQL", () => {
         const id = 1;
         const id_label = "id";
         const expectedSQL = "UPDATE users SET name = 'John Doe', age = 30 WHERE id = 1;";
-        const resultSQL = sqlGenerator_1.default.generateUpdateSQL(tableName, data, id, id_label);
+        const resultSQL = sqlGenerator.generateUpdateSQL(tableName, data, id, id_label);
         expect(resultSQL).toBe(expectedSQL);
     });
 });
@@ -54,7 +50,7 @@ describe("generateCreateTableSQL", () => {
             },
         ];
         const expectedSQL = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER DEFAULT 0);";
-        const resultSQL = sqlGenerator_1.default.generateCreateTableSQL(tableName, data);
+        const resultSQL = sqlGenerator.generateCreateTableSQL(tableName, data);
         expect(resultSQL).toBe(expectedSQL);
     });
     test("should throw an error for unknown column type", () => {
@@ -70,7 +66,7 @@ describe("generateCreateTableSQL", () => {
             },
         ];
         expect(() => {
-            sqlGenerator_1.default.generateCreateTableSQL(tableName, data);
+            sqlGenerator.generateCreateTableSQL(tableName, data);
         }).toThrowError("Unknown type: UNKNOWN");
     });
 });

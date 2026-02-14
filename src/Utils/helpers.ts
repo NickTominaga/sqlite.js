@@ -1,4 +1,4 @@
-import type { DataItem } from "../types";
+type DataItem = import("../types").DataItem;
 
 // Consider null, undefined and "" as empty, but not 0
 export const isEmpty = (value: string | number | null | undefined) =>

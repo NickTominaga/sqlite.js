@@ -1,4 +1,4 @@
-import sqlGenerator from "../Utils/sqlGenerator";
+const sqlGenerator = require("../Utils/sqlGenerator").default;
 
 interface UpdateData {
   field: string;

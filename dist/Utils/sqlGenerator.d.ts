@@ -1,4 +1,4 @@
-import type { DataItem } from "../types";
+type DataItem = import("../types").DataItem;
 declare function generateInsertSQL(db: any, tableName: string, data: DataItem[]): Promise<string>;
 declare function generateUpdateSQL(tableName: string, data: DataItem[], id: number | string, id_label: string): string;
 declare function generateCreateTableSQL(tableName: string, data: DataItem[]): string;
