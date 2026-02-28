@@ -16,6 +16,7 @@
 - [Updating the Package](#updating-the-package)
 - [Uninstallation](#uninstallation)
 - [Screenshots](#screenshots)
+- [API Docs (Swagger UI)](#api-docs-swagger-ui)
 
 ## Installation
 
@@ -110,6 +111,24 @@ Now all SQLite GUI routes will be accessible under the /sqlite path. For example
 | -------- | ------------------ | ------------------------------------------------------------------------ |
 | db       | `sqlite3.Database` | The file of your SQLite database.                                        |
 | port     | number             | (Optional) The port on which the GUI server will run. Default is `8080`. |
+
+
+## API Docs (Swagger UI)
+
+The package now exposes OpenAPI docs for the REST endpoints:
+
+- Swagger UI: `http://localhost:8080/api-docs`
+- OpenAPI JSON: `http://localhost:8080/api-docs.json`
+
+Main RESTful endpoints:
+
+- `GET /api/tables`
+- `GET /api/tables/:name/rows?page=1&perPage=20`
+- `GET /api/tables/:name/rows/:id?key=id`
+- `POST /api/tables/:name/rows`
+- `PATCH /api/tables/:name/rows/:id?key=id`
+- `DELETE /api/tables/:name/rows/:id?key=id`
+- `DELETE /api/tables/:name`
 
 ## Features
 

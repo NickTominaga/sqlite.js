@@ -1,3 +1,2 @@
-import * as winston from "winston";
-declare const logger: winston.Logger;
+declare const logger: import("winston").Logger;
 export default logger;
